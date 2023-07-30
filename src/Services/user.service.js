@@ -2,16 +2,20 @@ const createHttpError = require("http-errors");
 const Users = require("../Models/Users.model");
 const bcrypt = require("bcrypt");
 
-const getUserById = async (id) => {
+const findUserById = async (id) => {
   return await Users.findById(id);
 };
 
-const getUserByCondition = async (condition) => {
-  return await Users.findOne(condition);
+const getListUserByConditions = async (conditions) => {
+  return await Users.find(conditions);
+};
+
+const findUserByConditions = async (conditions, options = {}) => {
+  return await Users.findOne(conditions, options);
 };
 
 const createUser = async (data) => {
-  const user = await getUserByCondition({ email: data.email });
+  const user = await findUserByConditions({ email: data.email });
   if (user) {
     throw createHttpError(404, "Email already taken");
   }
@@ -19,7 +23,19 @@ const createUser = async (data) => {
   return await Users.create(data);
 };
 
+const updateUser = async (id, data) => {
+  return await Users.findByIdAndUpdate(id, data, { new: true });
+};
+
+const deleteUser = async (id) => {
+  return await Users.findByIdAndDelete(id);
+};
+
 module.exports = {
   createUser,
-  getUserByCondition,
+  getListUserByConditions,
+  findUserByConditions,
+  findUserById,
+  updateUser,
+  deleteUser,
 };

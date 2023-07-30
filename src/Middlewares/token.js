@@ -1,8 +1,8 @@
 const createHttpError = require("http-errors");
-const { verifyToken } = require("../Helpers/jwt");
+const { verifyToken } = require("../Services/auth.service");
 
-const checkToken = (req, res, next) => {
-  const token = req.headers.authorization.split(" ")[1];
+const checkAuthentication = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
     throw createHttpError(401, "Token not empty");
   }
@@ -14,5 +14,5 @@ const checkToken = (req, res, next) => {
 };
 
 module.exports = {
-  checkToken,
+  checkAuthentication,
 };

@@ -1,4 +1,3 @@
-const createHttpError = require("http-errors");
 const catchAsync = require("../Utils/catchAsync");
 const userSevice = require("../Services/user.service");
 const authService = require("../Services/auth.service");
@@ -32,7 +31,7 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
-const logout = catchAsync(async (req, res, next) => {
+const logout = catchAsync(async (req, res) => {
   const { refreshToken } = req.body;
   const response = await authService.logout(refreshToken);
   return res.status(200).json({

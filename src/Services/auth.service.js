@@ -1,12 +1,14 @@
 const createHttpError = require("http-errors");
 const bcrypt = require("bcrypt");
 const userSevice = require("../Services/user.service");
-const jwtHelper = require("../Helpers/jwt");
 const redis = require("../redis");
 const jwt = require("jsonwebtoken");
 
 const loginWithEmailAndPassword = async (email, password) => {
-  const user = await userSevice.getUserByCondition({ email });
+  const user = await userSevice.findUserByConditions(
+    { email },
+    { email: true, username: true, password: true }
+  );
   if (!user) {
     throw createHttpError(404, "User not found");
   }
@@ -14,7 +16,7 @@ const loginWithEmailAndPassword = async (email, password) => {
   if (!valid) {
     throw createHttpError(401, "Email or password not corect");
   }
-  const { token, refreshToken } = jwtHelper.generateToken(user);
+  const { token, refreshToken } = generateToken(user);
 
   await redis.set(user._id.toString(), refreshToken, "EX", 365 * 24 * 60 * 60);
 
@@ -43,10 +45,10 @@ const generateToken = (user) => {
     username: user.username,
   };
   const token = jwt.sign(payload, process.env.SECRET_KEY, {
-    expiresIn: 5 * 60 * 1000,
+    expiresIn: 5 * 60,
   });
   const refreshToken = jwt.sign(payload, process.env.SECRET_REFRESH_KEY, {
-    expiresIn: 100 * 60 * 1000,
+    expiresIn: "1 year",
   });
   return {
     token,

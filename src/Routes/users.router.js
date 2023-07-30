@@ -1,8 +1,13 @@
 const express = require("express");
 const route = express.Router();
+const userController = require("../Controllers/user.controller");
+const validate = require("../Middlewares/validate");
+const userValidate = require("../Validations/users.validation");
 
-route.get("/", (req, res) => {
-  res.send("This is home page");
-});
+route.get("/", userController.getListUser);
+route.post("/", validate(userValidate.userCreate), userController.createUser);
+route.get("/:id", userController.findUserById);
+route.patch("/:id", userController.updateUser);
+route.delete("/:id", userController.deleteUser);
 
 module.exports = route;

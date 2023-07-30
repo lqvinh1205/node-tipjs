@@ -11,7 +11,7 @@ const UserRouter = require("./Routes/users.router");
 const AuthRouter = require("./Routes/auth.router");
 
 //Middleware
-const { checkToken } = require("./Middlewares/token");
+const { checkAuthentication } = require("./Middlewares/token");
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/v1", AuthRouter);
-app.use("/v1/users", checkToken, UserRouter);
+app.use("/v1/users", checkAuthentication, UserRouter);
 
 app.use((req, res, next) => {
   // res.status(404).json({

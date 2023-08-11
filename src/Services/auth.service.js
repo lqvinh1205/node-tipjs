@@ -28,7 +28,7 @@ const loginWithEmailAndPassword = async (email, password) => {
 
 const logout = async (refreshToken) => {
   if (!refreshToken) {
-    throw createHttpError.BadRequest();
+    throw createHttpError(403, "Refesh token not empty");
   }
   const payload = await verifyRefreshToken(refreshToken);
   if (!payload) {

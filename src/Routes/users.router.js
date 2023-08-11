@@ -7,7 +7,11 @@ const userValidate = require("../Validations/users.validation");
 route.get("/", userController.getListUser);
 route.post("/", validate(userValidate.userCreate), userController.createUser);
 route.get("/:id", userController.findUserById);
-route.patch("/:id", userController.updateUser);
+route.patch(
+  "/:id",
+  validate(userValidate.userUpdate),
+  userController.updateUser
+);
 route.delete("/:id", userController.deleteUser);
 
 module.exports = route;

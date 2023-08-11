@@ -13,6 +13,12 @@ const userCreate = {
       }),
   }),
 };
+const userUpdate = {
+  body: Joi.object({
+    email: Joi.string().email().required().trim().lowercase(),
+    username: Joi.string().required().trim(),
+  }),
+};
 
 const login = {
   body: Joi.object({
@@ -23,5 +29,6 @@ const login = {
 
 module.exports = {
   userCreate,
+  userUpdate,
   login,
 };

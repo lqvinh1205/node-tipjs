@@ -1,37 +1,39 @@
-const createHttpError = require("http-errors");
-const Users = require("../Models/Users.model");
-const bcrypt = require("bcrypt");
+import createHttpError from "http-errors";
+import UserModel from "../Models/User.model";
+import { hash } from "bcrypt";
 
 const findUserById = async (id) => {
-  return await Users.findById(id);
+  return await UserModel.findById(id);
 };
 
 const getListUserByConditions = async (conditions) => {
-  return await Users.find(conditions);
+  return await UserModel.find(conditions);
 };
 
 const findUserByConditions = async (conditions, options = {}) => {
-  return await Users.findOne(conditions, options);
+  return await UserModel.findOne(conditions, options);
 };
 
 const createUser = async (data) => {
-  const user = await findUserByConditions({ email: data.email });
+  const user = await findUserByConditions({
+    $or: [{ email: data.email }, { phone_number: data.phone_number }],
+  });
   if (user) {
-    throw createHttpError(404, "Email already taken");
+    throw createHttpError(404, "User already taken");
   }
-  data.password = await bcrypt.hash(data.password, 8);
-  return await Users.create(data);
+  data.password = await hash(data.password, 8);
+  return await UserModel.create(data);
 };
 
 const updateUser = async (id, data) => {
-  return await Users.findByIdAndUpdate(id, data, { new: true });
+  return await UserModel.findByIdAndUpdate(id, data, { new: true });
 };
 
 const deleteUser = async (id) => {
-  return await Users.findByIdAndDelete(id);
+  return await UserModel.findByIdAndDelete(id);
 };
 
-module.exports = {
+export default {
   createUser,
   getListUserByConditions,
   findUserByConditions,

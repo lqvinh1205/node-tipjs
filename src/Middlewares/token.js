@@ -1,5 +1,5 @@
 const createHttpError = require("http-errors");
-const { verifyToken } = require("../Services/auth.service");
+const { verifyToken } = require("../Services/auth.service").default;
 
 const checkAuthentication = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];

@@ -1,33 +1,45 @@
-const express = require("express");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const mongoose = require("mongoose");
-const createHttpError = require("http-errors");
-require("dotenv").config();
-const logEvents = require("./Helpers/logEvent");
+import express from "express";
+import helmet, { crossOriginResourcePolicy } from "helmet";
+import morgan from "morgan";
+import { connect, connection } from "mongoose";
+import { createServer } from "http";
+import cors from "cors";
 
 //Import router
-const UserRouter = require("./Routes/users.router");
-const AuthRouter = require("./Routes/auth.router");
+import UserRouter from "./Routes/users.router";
+import AuthRouter from "./Routes/auth.router";
+import BrandRouter from "./Routes/brand.router";
+import ConfiguarationRouter from "./Routes/configuaration.router";
+import ImagesRouter from "./Routes/image.router";
 
 //Middleware
-const { checkAuthentication } = require("./Middlewares/token");
+import { checkAuthentication } from "./Middlewares/token";
+import logEvents from "./Helpers/logEvent";
 
 const app = express();
+const server = createServer(app);
 
+app.use(
+  cors({
+    origin: "*",
+  })
+);
+
+// su dung cac middlaware
 app.use(morgan("tiny"));
 app.use(helmet());
+app.use(crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// su dung cac route
 app.use("/v1", AuthRouter);
-app.use("/v1/users", checkAuthentication, UserRouter);
+app.use("/v1/users", UserRouter);
+app.use("/v1/brands", BrandRouter);
+app.use("/v1/configuaration", ConfiguarationRouter);
+app.use("/v1/images", ImagesRouter);
 
 app.use((req, res, next) => {
-  // res.status(404).json({
-  //   status: 404,
-  //   message: "Not found",
-  // });
   next(createHttpError(404, "Not found"));
 });
 
@@ -40,24 +52,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-mongoose
-  .connect("mongodb://127.0.0.1:27017/tipjs")
+connect("mongodb://127.0.0.1:27017/backend-pc")
   .then(() => console.log("Database connect success"))
   .catch((err) => console.log("Database connect faild"));
 
-mongoose.connection.on("connected", () => console.log("Mongoose connected"));
-mongoose.connection.on("error", (err) => console.log(err.message));
-mongoose.connection.on("disconnected", () =>
-  console.log("Mongoose disconnected")
-);
+connection.on("connected", () => console.log("Mongoose connected"));
+connection.on("error", (err) => console.log(err.message));
+connection.on("disconnected", () => console.log("Mongoose disconnected"));
 
 // Bắt sự kiện disconnect
 process.on("SIGINT", async () => {
-  await mongoose.connection.close();
+  await connection.close();
   process.exit(0);
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log("Server is running port", PORT);
 });

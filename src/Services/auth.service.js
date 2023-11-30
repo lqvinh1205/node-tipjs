@@ -1,24 +1,26 @@
-const createHttpError = require("http-errors");
-const bcrypt = require("bcrypt");
-const userSevice = require("../Services/user.service");
-const redis = require("../redis");
-const jwt = require("jsonwebtoken");
+import createHttpError, { Unauthorized } from "http-errors";
+import { compare } from "bcrypt";
+import {
+  findUserByConditions,
+  findUserById,
+  updateUser,
+} from "../Services/user.service";
+import { sign, verify } from "jsonwebtoken";
 
 const loginWithEmailAndPassword = async (email, password) => {
-  const user = await userSevice.findUserByConditions(
+  const user = await findUserByConditions(
     { email },
     { email: true, username: true, password: true }
   );
   if (!user) {
     throw createHttpError(404, "User not found");
   }
-  const valid = await bcrypt.compare(password, user.password);
+  const valid = await compare(password, user.password);
   if (!valid) {
     throw createHttpError(401, "Email or password not corect");
   }
   const { token, refreshToken } = generateToken(user);
-
-  await redis.set(user._id.toString(), refreshToken, "EX", 365 * 24 * 60 * 60);
+  await updateUser(user._id, { refresh_token: refreshToken });
 
   return {
     token,
@@ -32,9 +34,9 @@ const logout = async (refreshToken) => {
   }
   const payload = await verifyRefreshToken(refreshToken);
   if (!payload) {
-    throw createHttpError.Unauthorized();
+    throw Unauthorized();
   }
-  redis.del(payload._id.toString());
+  await updateUser(payload._id, { refresh_token: null });
   return null;
 };
 
@@ -44,10 +46,10 @@ const generateToken = (user) => {
     email: user.email,
     username: user.username,
   };
-  const token = jwt.sign(payload, process.env.SECRET_KEY, {
+  const token = sign(payload, process.env.SECRET_KEY, {
     expiresIn: 5 * 60,
   });
-  const refreshToken = jwt.sign(payload, process.env.SECRET_REFRESH_KEY, {
+  const refreshToken = sign(payload, process.env.SECRET_REFRESH_KEY, {
     expiresIn: "1 year",
   });
   return {
@@ -57,35 +59,35 @@ const generateToken = (user) => {
 };
 
 const verifyToken = (token) => {
-  return jwt.verify(token, process.env.SECRET_KEY, function (error, decode) {
+  return verify(token, process.env.SECRET_KEY, function (error, decode) {
     if (error) {
       const message =
         error.name == "JsonWebTokenError" ? "Unauthorized" : error.message;
-      throw createHttpError.Unauthorized(message);
+      throw Unauthorized(message);
     }
   });
 };
 
 const verifyRefreshToken = async (token) => {
-  const payload = jwt.verify(
+  const payload = verify(
     token,
     process.env.SECRET_REFRESH_KEY,
     function (error, decode) {
       if (error) {
         const message =
           error.name == "JsonWebTokenError" ? "Unauthorized" : error.message;
-        throw createHttpError.Unauthorized(message);
+        throw Unauthorized(message);
       }
       return decode;
     }
   );
   if (!payload) {
-    throw createHttpError.Unauthorized();
+    throw Unauthorized();
   }
-  const refToken = await redis.get(payload._id.toString());
+  const { refresh_token: refToken } = await findUserById(payload._id);
 
   if (token != refToken) {
-    throw createHttpError.Unauthorized();
+    throw Unauthorized();
   }
 
   return payload;
@@ -99,16 +101,11 @@ const refreshToken = async (refreshToken) => {
   delete payload.iat;
   delete payload.exp;
   const response = generateToken(payload);
-  await redis.set(
-    payload._id.toString(),
-    response.refreshToken,
-    "EX",
-    365 * 24 * 60 * 60
-  );
+  await updateUser(payload._id, { refresh_token: response.refreshToken });
   return response;
 };
 
-module.exports = {
+export default {
   logout,
   loginWithEmailAndPassword,
   refreshToken,

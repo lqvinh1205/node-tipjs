@@ -1,6 +1,6 @@
-const catchAsync = require("../Utils/catchAsync");
-const userSevice = require("../Services/user.service");
-const authService = require("../Services/auth.service");
+const catchAsync = require("../Utils/catchAsync").default;
+const userSevice = require("../Services/user.service").default;
+const authService = require("../Services/auth.service").default;
 
 const register = catchAsync(async (req, res) => {
   const user = await userSevice.createUser(req.body);

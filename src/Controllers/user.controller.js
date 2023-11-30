@@ -1,5 +1,5 @@
-const catchAsync = require("../Utils/catchAsync");
-const userService = require("../Services/user.service");
+const catchAsync = require("../Utils/catchAsync").default;
+const userService = require("../Services/user.service").default;
 
 const getListUser = catchAsync(async (req, res) => {
   const conditions = req.body;
@@ -14,7 +14,6 @@ const getListUser = catchAsync(async (req, res) => {
 const findUserById = catchAsync(async (req, res) => {
   const id = req.params.id;
   const user = await userService.findUserById(id);
-  console.log(user);
   return res.status(200).json({
     status: 200,
     message: "success",
@@ -33,6 +32,7 @@ const createUser = catchAsync(async (req, res) => {
 });
 
 const updateUser = catchAsync(async (req, res) => {
+  console.log(12);
   const id = req.params.id;
   const data = req.body;
   const user = await userService.updateUser(id, data);

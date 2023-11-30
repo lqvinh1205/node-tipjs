@@ -1,8 +1,8 @@
-const fs = require("fs").promises;
-const path = require("path");
-const { format } = require("date-fns");
+import { promises as fs } from "fs";
+import { join } from "path";
+import { format } from "date-fns";
 
-const fileName = path.join(__dirname, "../Logs", "logs.log");
+const fileName = join(__dirname, "../Logs", "logs.log");
 const logEvents = async (msg) => {
   try {
     const dateTime = `${format(new Date(), "dd-MM-yyyy\tss:mm:HH")}`;
@@ -13,4 +13,4 @@ const logEvents = async (msg) => {
   }
 };
 
-module.exports = logEvents;
+export default logEvents;

@@ -4,8 +4,12 @@ const userCreate = {
   body: Joi.object({
     email: Joi.string().email().required().trim().lowercase(),
     username: Joi.string().required().trim(),
+    phone_number: Joi.string().required().trim(),
+    date_of_birth: Joi.date().required(),
+    address: Joi.string().required().trim(),
+    role: Joi.number().required(),
     password: Joi.string().required().trim().min(6),
-    confirmPassword: Joi.any()
+    confirm_password: Joi.any()
       .valid(Joi.ref("password"))
       .required()
       .options({
